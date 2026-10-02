@@ -4,15 +4,12 @@
 
 [laya](https://github.com/NandhaKishorM/laya) は確率つきの意思決定モデルです。生成 AI と違い、回答を文章として書き出すのではなく、質問に対して型つきの答えと確率分布だけを返します。phobos はその性質を、紹介・試遊・設計ガイドの 3 ページで説明します。
 
-| | |
-|---|---|
-| 紹介 LP | [watanabe3tipapa.github.io/phobos](https://watanabe3tipapa.github.io/phobos/) |
-| Sandbox | [demo.html](https://watanabe3tipapa.github.io/phobos/demo.html) |
-| 設計ガイド | [laya_uiux_guide.html](https://watanabe3tipapa.github.io/phobos/laya_uiux_guide.html) |
-| バージョン | 0.1.0 |
-| ライセンス | [Apache-2.0](LICENSE)（laya と wterm も Apache-2.0） |
+[![License](https://img.shields.io/badge/License-Apache%202.0-yellow.svg)](LICENSE)
+[![Version](https://img.shields.io/badge/version-v0.1.0-blue.svg)](https://github.com/watanabe3tipapa/phobos/releases)
+[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-live-blue.svg)](https://watanabe3tipapa.github.io/phobos/)
+[![GitHub](https://img.shields.io/github/issues/watanabe3tipapa/phobos.svg)](https://github.com/watanabe3tipapa/phobos/issues)
 
-> 上の URL は `main` ブランチへの push ごとに GitHub Actions で再ビルド・再デプロイされます。手元で試す場合は下の「インストールとビルド」を使ってください。
+**クイックリンク:** [公開サイト](https://watanabe3tipapa.github.io/phobos/) · [Sandbox](https://watanabe3tipapa.github.io/phobos/demo.html) · [UI/UX 設計ガイド](https://watanabe3tipapa.github.io/phobos/laya_uiux_guide.html) · [コンソールリファレンス](#コンソールリファレンス) · [honest limits](#正直な限界)
 
 ## コンセプト
 
@@ -59,6 +56,17 @@ confidence = 1 - H(p) / log(k)
 ## 主な特徴
 
 ### 3 ページ構成
+
+| 営み | phobos の対応物 |
+|---|---|
+| 答え|score で「緊急度は？」と尋ね、段階ごとの確率を得る |
+| 振り分け| `choice` で候補を並べ、分布と最有力を選ぶ |
+| 判定|`noul` で P(true) を 1 つの数字で得る |
+| 信用できない答えを止める | confidence gating（既定 0.85）で人手確認へ回す |
+| 自分で確かめる | Sandbox の 3 エンジン切替とコンソール |
+| UI にする| 7 章の UI/UX 設計ガイド |
+
+ファイル構成:
 
 | ファイル | 内容 |
 |---|---|
@@ -107,20 +115,27 @@ Sandbox のエンジンは切り替えられます。3 つとも同じ画面、�
 
 ### 前提条件
 
-| ツール | 要件 | 確認コマンド |
-|---|---|---|
+| ツール | 必要バージョン | 確認コマンド |
+|---|---:|---|
 | Node.js | 22（開発・CI で確認済み） | `node --version` |
 | npm | 同梱の npm でよい | `npm --version` |
-| Python 3.10 以上 | `laya` を使う場合のみ | `python3 --version` |
-| Git | 公開・貢献する場合のみ | `git --version` |
+| Python | >= 3.10（`laya` を使う場合のみ） | `python3 --version` |
+| Git | 任意（デプロイ・貢献時） | `git --version` |
 
 依存パッケージは wterm の取り込みにだけ使います。実行時の CDN 依存はありません。
 
-### 手順
+### 基本的な手順
+
+1. リポジトリを取得
 
 ```bash
 git clone https://github.com/watanabe3tipapa/phobos.git
 cd phobos
+```
+
+2. 依存をインストールしてビルド
+
+```bash
 npm ci
 npm run build
 npm run serve      # http://localhost:4173/
@@ -135,7 +150,7 @@ assets/js/（engine / templates / play / console）┘
 assets/vendor/wterm/  … npm から取り込んだ実体（Apache-2.0）
 ```
 
-### コマンド
+### 主要コマンド
 
 | コマンド | 用途 |
 |---|---|
@@ -318,29 +333,30 @@ npm run build && npm run serve    # http://localhost:4173/
 
 ## ドキュメント
 
-1. [紹介 LP](https://watanabe3tipapa.github.io/phobos/) モデルの性質、仕様、限界
-2. [Sandbox](https://watanabe3tipapa.github.io/phobos/demo.html) 確率つきの出力を手で触る
-3. [UI/UX ガイド](https://watanabe3tipapa.github.io/phobos/laya_uiux_guide.html) 確率と信頼度を見せる設計指針
+初心者は次の順で読むと全体像が把握しやすいです。
+
+1. [紹介 LP](https://watanabe3tipapa.github.io/phobos/) — 3 つのプリミティブ、較正、多言語、性能、限界
+2. [Sandbox](https://watanabe3tipapa.github.io/phobos/demo.html) — 確率つきの出力を手で触る。3 エンジン切替とコンソール付き
+3. [UI/UX 設計ガイド](https://watanabe3tipapa.github.io/phobos/laya_uiux_guide.html) — 確率と信頼度を見せる設計指針（7 章）
 
 本リポジトリと上記の 3 ページで引用している数値は、[Laya モデルカード](https://huggingface.co/convaiinnovations/laya) と [BENCHMARKS.md](https://github.com/NandhaKishorM/laya/blob/main/BENCHMARKS.md) に基づきます。Jev に関する数値は第三者の公開値です。
 
 ## コントリビューション
 
-Issue を先に立ててください。
+コントリビューションは歓迎します。大きな変更を行う前に [Issue](https://github.com/watanabe3tipapa/phobos/issues) を立てて相談してください。一般的な手順:
 
-```bash
-git checkout -b feature/your-feature
-git commit -m 'Add your feature'
-git push origin feature/your-feature
-```
+1. リポジトリをフォーク
+2. 機能ブランチを作成 (`git checkout -b feature/your-feature`)
+3. 変更をコミット (`git commit -m 'Add your feature'`)
+4. ブランチをプッシュし、Pull Request を作成
 
 `assets/vendor/wterm/` は手編集せず、`package.json` の pin を変えて `npm run vendor` を実行してください。`npm run vendor:check` が CI で同期を検査します。
 
+## 連絡先
+
+- GitHub: https://github.com/watanabe3tipapa/phobos
+- 公開サイト: https://watanabe3tipapa.github.io/phobos/
+
 ## ライセンス
 
-本リポジトリは [Apache License 2.0](LICENSE) で公開しています。
-
-同梱・依存しているソフトウェア:
-
-- [vercel-labs/wterm](https://github.com/vercel-labs/wterm) 0.5.4、Apache-2.0。`assets/vendor/wterm/core/LICENSE` と `assets/vendor/wterm/dom/LICENSE` を参照
-- [laya](https://github.com/NandhaKishorM/laya) Apache-2.0
+Apache-2.0 ライセンス — 詳細はリポジトリの [LICENSE](LICENSE) ファイルを参照してください。同梱の wterm 0.5.4 と laya も Apache-2.0 です。
