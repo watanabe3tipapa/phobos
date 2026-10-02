@@ -264,7 +264,7 @@ export function getTemplate(id) {
   return TEMPLATES.find((t) => t.id === id) || TEMPLATES[TEMPLATES.length - 1];
 }
 
-/** Normalised question list, used for validation and rendering. */
+/** Normalized question list, used for validation and rendering. */
 export function normalizeQuestions(questions) {
   return Object.entries(questions || {}).map(([key, q]) => ({
     key,
@@ -280,7 +280,7 @@ export function validateQuestions(questions) {
   const entries = normalizeQuestions(questions);
 
   if (entries.length === 0) {
-    errors.__form = "質問が1つもありません。テンプレートを選ぶか、追加してください。";
+    errors.__form = "質問が 1 つもありません。テンプレートを選ぶか、追加してください。";
     return errors;
   }
 

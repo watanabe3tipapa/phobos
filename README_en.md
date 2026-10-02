@@ -80,11 +80,13 @@ File layout:
 
 The Sandbox lets you switch engines. All three run on the same screen with the same interactions.
 
-| Engine | Connects to | Output | Calibrated |
-|---|---|---|---|
-| `mock` (default) | Nothing. Runs entirely in the browser | Deterministic heuristic | No |
-| `laya` | `POST /v1/systemone` | Typed probabilities | Yes (temperature calibration is the consumer's job) |
-| `magnitude` | `POST /inference/v1/chat/completions` | Self-reported values from a text generator | No |
+| Engine | Connects to | Default | Output | Calibrated |
+|---|---|---|---|---|
+| `mock` (default) | Nothing. Runs entirely in the browser | None | Deterministic heuristic | No |
+| `laya` | `POST /v1/systemone` | `http://localhost:8000/v1/systemone` | Typed probabilities | Yes (temperature calibration is the consumer's job) |
+| `magnitude` | `POST /inference/v1/chat/completions` | `http://127.0.0.1:10100/inference/v1` | Self-reported values from a text generator | No |
+
+The defaults are the constants in `assets/js/engine.js`; the `endpoint` command changes them at any time.
 
 **`mock` cannot be used as an experimental result.** It makes no network calls and returns the same value for the same input every time, so the latency readout is not a measurement either. Run validation and benchmarks on the `laya` engine. The UI and the console say so at all times.
 
@@ -171,7 +173,7 @@ On first run only, set **Settings → Pages → Build and deployment → Source*
 
 ### laya
 
-[laya-serve](https://pypi.org/project/laya/) exposes the Router as a Jev-compatible HTTP server. The shape of `POST /v1/systemone` is the same as TypeSafe Jev, so existing clients work by changing the base URL alone.
+[laya-serve](https://pypi.org/project/laya/) exposes the Router as a Jev-compatible HTTP server. The shape of `POST /v1/systemone` is the same as TypeSafe Jev, so existing clients work by changing the base URL alone. Jev is a third-party product name (see [About Jev](#about-jev)).
 
 ```bash
 pip install "laya[serve]"
@@ -341,7 +343,13 @@ Read in this order to get the whole picture.
 2. [Sandbox](https://watanabe3tipapa.github.io/phobos/demo.html) — touch the probabilistic output yourself, with three engines and a console
 3. [UI/UX design guide](https://watanabe3tipapa.github.io/phobos/laya_uiux_guide.html) — design guidance for surfacing probabilities and confidence (7 chapters)
 
-Every figure quoted in this repository and in the three pages comes from the [Laya model card](https://huggingface.co/convaiinnovations/laya) and [BENCHMARKS.md](https://github.com/NandhaKishorM/laya/blob/main/BENCHMARKS.md). Figures about Jev are third-party public values.
+Every figure quoted in this repository and in the three pages comes from the [Laya model card](https://huggingface.co/convaiinnovations/laya) and [BENCHMARKS.md](https://github.com/NandhaKishorM/laya/blob/main/BENCHMARKS.md).
+
+The record of implementation background, design decisions, and verification results lives in [DEV-MEMO.md](DEV-MEMO.md) (Japanese).
+
+### About Jev
+
+> Jev is a third-party product name, not a typo. The upstream benchmark records it as `Jev 1.13.0 (published)`. Every Jev figure quoted here (ECE 0.246, typed-decisions 0.727, banking77 0.870, option-order robustness 0.13) is a **published third-party value**. We did not measure them: with no TypeSafe API access, the sample sizes, prompts, and temperature-calibration conditions differ from the laya side. Do not read them as a like-for-like comparison.
 
 ## Contributing
 

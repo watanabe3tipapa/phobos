@@ -415,7 +415,7 @@ export async function predict(state, questions, options = {}) {
   return runMock(state, questions);
 }
 
-/** Normalise an engine result into a shape the renderer can consume. */
+/** Normalize an engine result into a shape the renderer can consume. */
 export function normalizeResult(result, questions) {
   const entries = Object.entries(questions).map(([key, q]) => {
     const a = result.answers?.[key] || {};
@@ -566,7 +566,7 @@ function normalizeDistribution(dist, criteria) {
     }
   }
   if (!Object.keys(out).length) return null;
-  // Renormalise so the bars always sum to 1 even if the model did not.
+  // Renormalize so the bars always sum to 1 even if the model did not.
   if (total > 0 && Math.abs(total - 1) > 1e-6) {
     for (const k of Object.keys(out)) out[k] = out[k] / total;
   }

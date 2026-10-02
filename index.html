@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>laya — 33ms の較正済み意思決定モデル</title>
+    <title>laya — 32.8 ms の較正済み意思決定モデル</title>
     <meta
       name="description"
       content="laya はテキストを生成しない System 1 意思決定モデルです。状態に型付き質問を与えると、確率と信頼度スコア付きの回答を単一フォワードパスで返します。Apache 2.0 で公開。"
@@ -119,6 +119,11 @@
               温度スケーリング後の ECE は <strong>0.081</strong>（TypeSafe Jev 0.246）。0.90 と出したら約
               9 割正しい、という意味が実際に成り立ちます。confidence でゲーティングできます。
             </p>
+            <p class="legal-note" style="margin-top: 8px; font-size: 0.85em">
+              Jev
+              は第三者の製品名です（上流ベンチマークの記載は <code>Jev 1.13.0 (published)</code>
+              ）。この 0.246 は当我方が測定した値ではなく、公開済みの値です。
+            </p>
           </article>
 
           <article class="card">
@@ -228,9 +233,13 @@
           <article class="card">
             <h3 class="card__title">正直な限界</h3>
             <p class="card__body">
-              ゼロショットの typed-decisions は 0.362（ランダム 0.318）。jeopardy の
-              >20 選択肢では Jev に負け、<span class="k">score</span> が最も弱い primitive
+              ゼロショットの typed-decisions は 0.362（ランダム 0.318）。banking77
+              の 77 選択肢では Jev に負け、<span class="k">score</span> が最も弱い primitive
               です。用途に合わせて fine-tune してください。
+            </p>
+            <p class="legal-note" style="margin-top: 8px; font-size: 0.85em">
+              Jev は第三者の製品名です。77 選択肢の <code>banking77</code> での 0.425 対 0.870
+              との比較は公開済みの値であり、当方が測定した結果ではありません。
             </p>
           </article>
         </div>

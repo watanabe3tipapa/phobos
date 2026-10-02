@@ -51,7 +51,7 @@ laya 本体の confidence はエントロピー正規化で定義されていま
 confidence = 1 - H(p) / log(k)
 ```
 
-`H(p)` は確率分布 `p` のエントロピー、`k` は選択肢数です。分布が鋭いほど confidence は高くなります。モデルカードによれば、**生の状態では過信に傾きます**。温度スケーリングによって平均 ECE が 0.466 から 0.081 まで下がるため、確率を実用として使うなら自分のデータで再校正してから信頼してください。
+`H(p)` は確率分布 `p` のエントロピー、`k` は選択肢数です。分布が鋭いほど confidence は高くなります。モデルカードによれば、**生の状態では過信に傾きます**。温度スケーリングによって平均 ECE が 0.466 から 0.081 まで下がるため、確率を実用として使うなら自分のデータで再較正してから信頼してください。
 
 なお `action.act_probability` は現在ほぼ 1.0 を返し、判別力に乏しく実用的ではありません（AUROC 0.30）。gate の根拠になるのは `confidence` のみです（AUROC 0.77）。
 
@@ -80,11 +80,13 @@ confidence = 1 - H(p) / log(k)
 
 Sandbox のエンジンは切り替えられます。3 つとも同じ画面、同じ操作で動きます。
 
-| エンジン | 接続先 | 出力 | 較正 |
-|---|---|---|---|
-| `mock`（既定） | なし。ブラウザ内で完結 | 決定論的ヒューリスティック | なし |
-| `laya` | `POST /v1/systemone` | 型つき確率 | あり（温度校正は利用者側の責任） |
-| `magnitude` | `POST /inference/v1/chat/completions` | 生成モデルによる自己申告値 | なし |
+| エンジン | 接続先 | 既定値 | 出力 | 較正 |
+|---|---|---|---|---|
+| `mock`（既定） | なし。ブラウザ内で完結 | なし | 決定論的ヒューリスティック | なし |
+| `laya` | `POST /v1/systemone` | `http://localhost:8000/v1/systemone` | 型つき確率 | あり（温度較正は利用者側の責任） |
+| `magnitude` | `POST /inference/v1/chat/completions` | `http://127.0.0.1:10100/inference/v1` | 生成モデルによる自己申告値 | なし |
+
+既定値は `assets/js/engine.js` の定数で、`endpoint` コマンドでいつでも変更できます。
 
 **`mock` は実験結果には使えません。** ネットワークに出ず、同じ入力には常に同じ値を返すだけなので、レイテンシ表示も含めて実測ではありません。検証やベンチマークは必ず `laya` エンジンで行ってください。UI とコンソールには、その旨が常に出ています。
 
@@ -171,7 +173,7 @@ assets/vendor/wterm/  … npm から取り込んだ実体（Apache-2.0）
 
 ### laya
 
-[laya-serve](https://pypi.org/project/laya/) は Router を Jev 互換の HTTP サーバーとして公開します。`POST /v1/systemone` の形式は TypeSafe Jev と同じなので、既存クライアントはベース URL の変更だけで動きます。
+[laya-serve](https://pypi.org/project/laya/) は Router を Jev 互換の HTTP サーバーとして公開します。`POST /v1/systemone` の形式は TypeSafe Jev と同じなので、既存クライアントはベース URL の変更だけで動きます。Jev は第三者の製品名です（[Jev について](#jev-について) を参照）。
 
 ```bash
 pip install "laya[serve]"
@@ -329,7 +331,7 @@ npm run build && npm run serve    # http://localhost:4173/
 - **選択肢が多いと崩れる。** head は固定トークン枠なので、50 以上の選択肢は 1 問にまとめないこと
 - **`score` が最も弱い。** SST-5 で 0.372
 - **`noul` はラベルに従う。** `false:` / `true:` の表現に強く影響されます
-- **初期状態では過信です。** 温度校正によって ECE が 0.466 から 0.081 まで改善します
+- **初期状態では過信です。** 温度較正によって ECE が 0.466 から 0.081 まで改善します
 - **`action.act_probability` は使えない。** ほぼ 1.0 を返し、AUROC 0.30
 - **英語チェックポイントは英語専用。** それ以外は `laya-multilingual` を使う
 
@@ -341,7 +343,13 @@ npm run build && npm run serve    # http://localhost:4173/
 2. [Sandbox](https://watanabe3tipapa.github.io/phobos/demo.html) — 確率つきの出力を手で触る。3 エンジン切替とコンソール付き
 3. [UI/UX 設計ガイド](https://watanabe3tipapa.github.io/phobos/laya_uiux_guide.html) — 確率と信頼度を見せる設計指針（7 章）
 
-本リポジトリと上記の 3 ページで引用している数値は、[Laya モデルカード](https://huggingface.co/convaiinnovations/laya) と [BENCHMARKS.md](https://github.com/NandhaKishorM/laya/blob/main/BENCHMARKS.md) に基づきます。Jev に関する数値は第三者の公開値です。
+本リポジトリと上記の 3 ページで引用している数値は、[Laya モデルカード](https://huggingface.co/convaiinnovations/laya) と [BENCHMARKS.md](https://github.com/NandhaKishorM/laya/blob/main/BENCHMARKS.md) に基づきます。
+
+実装の背景・設計判断・検証結果の記録は [DEV-MEMO.md](DEV-MEMO.md) にあります。
+
+### Jev について
+
+> Jev は第三者の製品名です（誤字ではありません）。上流のベンチマークでは `Jev 1.13.0 (published)` と記載されています。当リポジトリが Jev として引用している数値（ECE 0.246、typed-decisions 0.727、banking77 0.870、順序ローバストネス 0.13）はすべて**公開済みの第三者の値**であり、当方では測定していません。TypeSafe API へのアクセスがないため、サンプル数・プロンプト・温度較正の条件も laya 側と同一ではありません。同一条件での比較ではない点に注意してください。
 
 ## コントリビューション
 
