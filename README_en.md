@@ -345,7 +345,7 @@ Read in this order to get the whole picture.
 
 Every figure quoted in this repository and in the three pages comes from the [Laya model card](https://huggingface.co/convaiinnovations/laya) and [BENCHMARKS.md](https://github.com/NandhaKishorM/laya/blob/main/BENCHMARKS.md).
 
-The record of implementation background, design decisions, and verification results lives in [DEV-MEMO.md](DEV-MEMO.md) (Japanese).
+The record of implementation background, design decisions, and verification results lives in [DEV-MEMO.md](https://github.com/watanabe3tipapa/phobos/blob/main/DEV-MEMO.md) (Japanese).
 
 ### About Jev
 

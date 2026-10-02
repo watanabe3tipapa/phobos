@@ -345,7 +345,7 @@ npm run build && npm run serve    # http://localhost:4173/
 
 本リポジトリと上記の 3 ページで引用している数値は、[Laya モデルカード](https://huggingface.co/convaiinnovations/laya) と [BENCHMARKS.md](https://github.com/NandhaKishorM/laya/blob/main/BENCHMARKS.md) に基づきます。
 
-実装の背景・設計判断・検証結果の記録は [DEV-MEMO.md](DEV-MEMO.md) にあります。
+実装の背景・設計判断・検証結果の記録は [DEV-MEMO.md](https://github.com/watanabe3tipapa/phobos/blob/main/DEV-MEMO.md) にあります。
 
 ### Jev について
 
