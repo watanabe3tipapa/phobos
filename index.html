@@ -1,0 +1,401 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>laya — 33ms の較正済み意思決定モデル</title>
+    <meta
+      name="description"
+      content="laya はテキストを生成しない System 1 意思決定モデルです。状態に型付き質問を与えると、確率と信頼度スコア付きの回答を単一フォワードパスで返します。Apache 2.0 で公開。"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Roboto+Mono:wght@400;700&family=Noto+Sans+JP:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="assets/css/base.css" />
+    <link rel="stylesheet" href="assets/css/lp.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">本文へスキップ</a>
+
+    <header class="site-header">
+      <div class="shell site-header__inner">
+        <a class="brand" href="index.html">phobos</a>
+        <nav class="site-nav" aria-label="サイト内ナビゲーション">
+          <a href="#model">Model</a>
+          <a href="#primitives">Primitives</a>
+          <a href="#how">How it works</a>
+          <a href="demo.html">Sandbox</a>
+          <a
+            href="https://github.com/NandhaKishorM/laya"
+            target="_blank"
+            rel="noopener noreferrer"
+            >GitHub ↗</a
+          >
+        </nav>
+      </div>
+    </header>
+
+    <main id="main" class="shell">
+      <!-- ================================================== HERO ===== -->
+      <section class="hero" style="margin-top: 24px">
+        <div class="hero__inner">
+          <div>
+            <div class="hero__eyebrow">
+              <span class="tag">System 1</span>
+              <span class="tag">non-autoregressive</span>
+              <span class="tag tag--accent">Apache 2.0</span>
+            </div>
+            <h1 class="hero__title">
+              答えじゃなくて<br /><span class="accent">確率</span>を返す
+            </h1>
+            <p class="hero__lead">
+              <strong>laya</strong> はテキストを生成しない意思決定モデルです。メール・チケット・JSON といった
+              「状態」に型付きの質問を与えると、<span class="k">choice</span> /
+              <span class="k">score</span> / <span class="k">noul</span>
+              の回答と、較正済みの確率・信頼度スコアを単一のフォワードパスで返します。パースエラーも幻覚もありません。
+            </p>
+            <div class="hero__meta">
+              <span class="tag">ModernBERT-large</span>
+              <span class="tag">421M params</span>
+              <span class="tag">32.8 ms / question</span>
+              <span class="tag">100+ languages</span>
+            </div>
+            <div class="hero__actions">
+              <a class="btn" href="demo.html">ブラウザで試す →</a>
+              <a class="btn btn--ghost" href="laya_uiux_guide.html">UI/UX ガイド</a>
+              <a class="btn btn--ghost" href="#how">仕組み</a>
+            </div>
+          </div>
+
+          <div class="hero__panel">
+            <div class="hero__panel-bar">
+              <i></i><i></i><i></i><span>python</span>
+            </div>
+            <div class="hero__panel-body">
+              <span class="k">from</span> laya <span class="k">import</span> Router<br /><br />
+              router = <span class="k">Router</span>()<br /><br />
+              state = <span class="s">"We were billed twice for March. Refund today or we cancel."</span><br />
+              questions = {<br />
+              &nbsp;&nbsp;<span class="s">"department"</span>: {<span class="s">"type"</span>: <span class="s">"choice"</span>,<br />
+              &nbsp;&nbsp;&nbsp;&nbsp;<span class="s">"criteria"</span>: {<span class="s">"billing"</span>: <span class="s">"refunds"</span>, <span class="s">"other"</span>: <span class="s">"rest"</span>}},<br />
+              &nbsp;&nbsp;<span class="s">"urgency"</span>: {<span class="s">"type"</span>: <span class="s">"score"</span>, <span class="s">"criteria"</span>: [<span class="s">"low"</span>, <span class="s">"high"</span>]},<br />
+              &nbsp;&nbsp;<span class="s">"churn"</span>: {<span class="s">"type"</span>: <span class="s">"noul"</span>, <span class="s">"instructions"</span>: <span class="s">"Will they leave?"</span>},<br />
+              }<br /><br />
+              res = router.<span class="k">predict</span>(state, questions)<br />
+              <span class="c"># → 32.8 ms, one forward pass</span><br /><br />
+              res[<span class="s">"answers"</span>][<span class="s">"department"</span>][<span class="s">"choice"</span>]<br />
+              <span class="c"># 'billing'  (confidence 0.94)</span><br />
+              res[<span class="s">"answers"</span>][<span class="s">"churn"</span>][<span class="s">"noul"</span>]<br />
+              <span class="c"># 0.892  (89.2% probability)</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================== 3 つの価値 ==== -->
+      <section class="section" id="model">
+        <div class="section__head">
+          <span class="tag">01 / 何が違うか</span>
+          <h2 class="section__title">生成ではなく、較正された確率を返す</h2>
+          <p class="section__lead">
+            通常の生成 AI は「それらしい文章」を返します。laya
+            は回答空間をリクエスト時に定義し、各選択肢の <span class="k">[MASK]</span>
+            マーカー位置でスコアリングして softmax します。学習は RLCD
+            （Reinforcement Learning for Calibrated Decisions、報酬に厳密妥当なスコアリング規則を使う）なので、確率を正直に報告することが報酬を最大化する唯一の手段です。
+          </p>
+        </div>
+
+        <div class="cards">
+          <article class="card">
+            <svg class="card__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 3l8 4v5c0 5-3.5 8.5-8 9.5C7.5 20.5 4 17 4 12V7z" />
+              <path d="m9 12 2 2 4-4" />
+            </svg>
+            <h3 class="card__title">較正されている</h3>
+            <p class="card__body">
+              温度スケーリング後の ECE は <strong>0.081</strong>（TypeSafe Jev 0.246）。0.90 と出したら約
+              9 割正しい、という意味が実際に成り立ちます。confidence でゲーティングできます。
+            </p>
+          </article>
+
+          <article class="card">
+            <svg class="card__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M13 2 4 14h7l-1 8 9-12h-7z" />
+            </svg>
+            <h3 class="card__title">速い</h3>
+            <p class="card__body">
+              T4 上で 1 問 <strong>32.8 ms</strong>、10 問バッチで
+              <strong>72.3 ms</strong>（7.2 ms/問）。生成経路がないため、サンプリングや length penalty
+              の調整が要りません。
+            </p>
+          </article>
+
+          <article class="card">
+            <svg class="card__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="8" />
+              <path d="M4 12h16M12 4c3 3.5 3 12.5 0 16M12 4c-3 3.5-3 12.5 0 16" />
+            </svg>
+            <h3 class="card__title">多言語</h3>
+            <p class="card__body">
+              <span class="k">Router</span> が Unicode
+              スクリプトを判定し、英語は ModernBERT-large、それ以外は mmBERT-base
+              に振り分けます。51 言語中 45 言語が有用（ランダム比 3 倍超）水準に到達します。
+            </p>
+          </article>
+
+          <article class="card">
+            <svg class="card__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M4 7h16v13H4z" />
+              <path d="M8 7V4h8v3M8 12h8M8 16h5" />
+            </svg>
+            <h3 class="card__title">型付き・自己完結</h3>
+            <p class="card__body">
+              質問は実行時に定義するので、新しいスキーマでも再学習は不要。Apache
+              2.0 で自己完結しており、外部 API の課金はゼロ。オフラインやオンプレミスで動かせます。
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <!-- ================================================== 仕様 ======= -->
+      <section class="section section--sunken">
+        <div class="section__head">
+          <span class="tag">02 / 仕様</span>
+          <h2 class="section__title">チェックポイントと性能</h2>
+          <p class="section__lead">
+            Hub には 3
+            つのチェックポイントがまとまっていて、必要なサブフォルダだけダウンロードされます。
+          </p>
+        </div>
+
+        <div class="table-wrap" tabindex="0">
+          <table class="spec">
+            <thead>
+              <tr>
+                <th scope="col">Checkpoint</th>
+                <th scope="col">Encoder</th>
+                <th scope="col">Params</th>
+                <th scope="col">Context</th>
+                <th scope="col">得意領域</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>convaiinnovations/laya</code></td>
+                <td>ModernBERT-large</td>
+                <td>421M</td>
+                <td>512</td>
+                <td>英語テキスト、ガードレール、メール振り分け</td>
+              </tr>
+              <tr>
+                <td><code>laya-multilingual</code></td>
+                <td>mmBERT-base</td>
+                <td>322M</td>
+                <td>1024（最大 8192）</td>
+                <td>100+ 言語、約 2.2 倍高速</td>
+              </tr>
+              <tr>
+                <td><code>laya-typed-decisions</code></td>
+                <td>ModernBERT-large</td>
+                <td>421M</td>
+                <td>1024</td>
+                <td>typed-decisions 4 ワークフロー（acc 0.766）</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="cards" style="margin-top: 16px">
+          <article class="card">
+            <h3 class="card__title">入力バジェット</h3>
+            <p class="card__body">
+              英語 512 トークン（head 192）、多言語 1024（head
+              256）。質問＋選択肢＋状態で分割されるため、選択肢が多いと 1
+              ラベルあたりのトークンが減ります。
+            </p>
+          </article>
+          <article class="card">
+            <h3 class="card__title">アーキテクチャ</h3>
+            <p class="card__body">
+              双方向 ModernBERT-large（395M、完全ファインチューニング）＋
+              ゼロから学習した decision head（2 層 transformer、オプションマーカー
+              scorer、act/escalate head）。
+            </p>
+          </article>
+          <article class="card">
+            <h3 class="card__title">正直な限界</h3>
+            <p class="card__body">
+              ゼロショットの typed-decisions は 0.362（ランダム 0.318）。jeopardy の
+              >20 選択肢では Jev に負け、<span class="k">score</span> が最も弱い primitive
+              です。用途に合わせて fine-tune してください。
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <!-- =============================================== プリミティブ ==== -->
+      <section class="section" id="primitives">
+        <div class="section__head">
+          <span class="tag">03 / Primitives</span>
+          <h2 class="section__title">質問は 3 つの型だけ</h2>
+          <p class="section__lead">
+            回答空間はリクエスト時に決まります。UI
+            側は利用者に型を覚えさせず、テンプレート（メール振り分け・フィッシング検知・AI
+            ガードレールなど）から選ばせるのが現実的です。
+          </p>
+        </div>
+
+        <div class="cards">
+          <article class="card">
+            <h3 class="card__title"><span class="k">choice</span></h3>
+            <p class="card__body">
+              選択肢から 1 つ。全選択肢の確率分布を返します。振り分け・カテゴリ分類・有害性判定に。
+            </p>
+            <pre class="code-block" tabindex="0" style="margin-top: 10px">{
+  "type": "choice",
+  "criteria": {
+    "billing": "refunds, charges",
+    "technical": "bugs, outages"
+  }
+}</pre>
+          </article>
+
+          <article class="card">
+            <h3 class="card__title"><span class="k">score</span></h3>
+            <p class="card__body">
+              順序付きの段階。どの段階とみなしたかの確率を返します。緊急度・深刻度・複雑さ判定に。
+            </p>
+            <pre class="code-block" tabindex="0" style="margin-top: 10px">{
+  "type": "score",
+  "criteria": ["low", "medium", "high", "blocking"]
+}</pre>
+          </article>
+
+          <article class="card">
+            <h3 class="card__title"><span class="k">noul</span></h3>
+            <p class="card__body">
+              真偽の確率 P(true) を返します。注意: 英語チェックポイントでは
+              <span class="k">false:</span> / <span class="k">true:</span> というラベルに影響されやすく、中立キーと中立な
+              説明を持つ 2 選択肢の <span class="k">choice</span> に言い換える方が安全です。
+            </p>
+            <pre class="code-block" tabindex="0" style="margin-top: 10px">{
+  "type": "noul",
+  "instructions": "Does the user threaten to cancel?"
+}</pre>
+          </article>
+        </div>
+      </section>
+
+      <!-- =============================================== 動線 =========== -->
+      <section class="section section--sunken" id="how">
+        <div class="section__head">
+          <span class="tag">04 / Flow</span>
+          <h2 class="section__title">このページの導線</h2>
+          <p class="section__lead">
+            試すだけなら <a href="demo.html">Sandbox</a>
+            を開くだけです。3 カラムで入力・質問設計・結果を 1
+            画面で追えます。下のコンソールには <span class="k">wterm</span>
+            を埋め込んでいて、現在の入力に対して <span class="k">run</span> /
+            <span class="k">curl</span> / <span class="k">json</span> などを実行できます。
+          </p>
+        </div>
+
+        <div class="steps">
+          <div class="step">
+            <div>
+              <h3 class="step__title">状態を貼り付ける</h3>
+              <p class="step__body">
+                Raw / Email / JSON / Ticket のタブで形式を切り替え。ファイルドロップ可。512
+                トークンへの接近度をバーで表示します。
+              </p>
+            </div>
+          </div>
+          <div class="step">
+            <div>
+              <h3 class="step__title">テンプレートを選ぶ</h3>
+              <p class="step__body">
+                8 種のプリセット（メール振り分け、フィッシング検知、サポート優先度、AI
+                ガードレール、請求処理、感情、多言語、カスタム）。 編集も個別にできます。
+              </p>
+            </div>
+          </div>
+          <div class="step">
+            <div>
+              <h3 class="step__title">Analyze を実行</h3>
+              <p class="step__body">
+                既定はオフラインの決定論モック。<span class="k">laya API</span>
+                に切り替えるとローカルの <span class="k">laya-serve</span> に直接 POST します。
+              </p>
+            </div>
+          </div>
+          <div class="step">
+            <div>
+              <h3 class="step__title">確率と信頼度を確認してエクスポート</h3>
+              <p class="step__body">
+                choice は分布バー、score はスケール、noul は P(true)
+                ゲージ。信頼度 85% 未満は保留警告として明示します。JSON / CSV で出力できます。
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="section__head" style="margin-top: 28px">
+          <h3 class="section__title" style="font-size: 1.1rem">
+            ローカルで本物の推論を試す
+          </h3>
+        </div>
+        <pre class="code-block" tabindex="0">pip install "laya[serve]"
+LAYA_DEVICE=cuda LAYA_PRELOAD=1 laya-serve
+
+# Sandbox の「laya API」を選ぶと localhost:8000 に接続します
+curl -s localhost:8000/v1/systemone \
+  -H 'Content-Type: application/json' \
+  -d '{"state": {"document": "I was charged twice."},
+       "questions": {"billing": {"type": "noul",
+                                 "instructions": "Is this about billing?"}}}'</pre>
+      </section>
+
+      <!-- ================================================== CTA ======== -->
+      <section class="section">
+        <div class="cta">
+          <div>
+            <h2 class="cta__title">確率つき意思決定を触ってみる</h2>
+            <p class="cta__body">
+              ブラウザだけで完結します。バックエンドも API
+              キーも不要です。 実モデルを繋ぐのも同じ画面です。
+            </p>
+          </div>
+          <a class="btn btn--ghost" href="demo.html">Sandbox を開く →</a>
+        </div>
+
+        <p class="legal-note" style="margin-top: 20px">
+          本ページの数値は <a href="https://huggingface.co/convaiinnovations/laya" target="_blank" rel="noopener">Laya モデルカード</a> および <a href="https://github.com/NandhaKishorM/laya/blob/main/BENCHMARKS.md" target="_blank" rel="noopener">BENCHMARKS.md</a> に基づく引用です。Sandbox
+          の既定の「mock」
+          エンジンはブラウザ内で動く決定論的なヒューリスティックであり、実モデルの推論結果ではありません。実推論には
+          <a href="https://pypi.org/project/laya/">PyPI の laya</a> パッケージと
+          <a href="https://huggingface.co/convaiinnovations/laya">Hugging Face の重み</a>
+          を使用します（いずれも Apache 2.0）。
+        </p>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="shell site-footer__inner">
+        <p>phobos — laya 紹介 &amp; 試用ページ</p>
+        <nav class="site-footer__links" aria-label="フッターナビゲーション">
+          <a href="demo.html">Sandbox</a>
+          <a href="laya_uiux_guide.html">UI/UX ガイド</a>
+          <a
+            href="https://huggingface.co/spaces/convaiinnovations/laya-demo"
+            target="_blank"
+            rel="noopener noreferrer"
+            >公式デモ</a
+          >
+        </nav>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,38 @@
+{
+  "generatedBy": "tools/vendor-wterm.mjs",
+  "source": "https://github.com/vercel-labs/wterm",
+  "versions": {
+    "@wterm/core": "0.5.4",
+    "@wterm/dom": "0.5.4"
+  },
+  "files": [
+    "core/LICENSE",
+    "core/index.js",
+    "core/terminal-core.js",
+    "core/transport.js",
+    "core/wasm-bridge.js",
+    "core/wasm-inline.js",
+    "core/wasm-loading.js",
+    "dom/debug.js",
+    "dom/graphics-layer.js",
+    "dom/history-selection.js",
+    "dom/hyperlink.js",
+    "dom/index.js",
+    "dom/input-accessibility.js",
+    "dom/input.js",
+    "dom/LICENSE",
+    "dom/kitty-keys.js",
+    "dom/output-announcements.js",
+    "dom/rectangle-drag.js",
+    "dom/rectangle-selection.js",
+    "dom/renderer.js",
+    "dom/search.js",
+    "dom/selection-range.js",
+    "dom/selection.js",
+    "dom/terminal.css",
+    "dom/text-capture.js",
+    "dom/tracked-selection.js",
+    "dom/wterm.js"
+  ],
+  "sha256": "fcecf6437eff1f44cfbd6135061db370dac74fcb682320ac6b6db9bec803661f"
+}

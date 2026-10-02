@@ -1,0 +1,295 @@
+/* Content-page styles: long-form prose, matching the brutalist LP theme. */
+
+.doc {
+  padding-block: clamp(16px, 3vw, 28px) 40px;
+}
+
+.doc__head {
+  margin-bottom: clamp(14px, 3vw, 22px);
+}
+
+.doc__title {
+  display: inline-block;
+  padding: 6px 16px;
+  border: 4px solid var(--border);
+  background: var(--accent);
+  border-radius: 2px;
+  font-size: clamp(1.3rem, 4.5vw, 2.1rem);
+  line-height: 1.25;
+  margin-bottom: 10px;
+}
+
+.doc__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.prose > section {
+  margin-bottom: clamp(22px, 4vw, 34px);
+}
+
+/* 見出し: ステッカー枠 + アクセント角 */
+.prose h2 {
+  display: table;
+  padding: 5px 14px;
+  margin: 0 0 12px;
+  border: 4px solid var(--border);
+  background: var(--bg);
+  border-radius: 2px;
+  font-size: clamp(1rem, 3vw, 1.2rem);
+  box-shadow: 4px 4px 0 var(--border);
+}
+
+.prose h2::before {
+  content: "";
+  display: inline-block;
+  width: 11px;
+  height: 11px;
+  margin-right: 9px;
+  background: var(--accent);
+  border: 2px solid var(--border);
+}
+
+.prose h3 {
+  font-size: clamp(0.95rem, 2.5vw, 1.05rem);
+  margin: 18px 0 6px;
+}
+
+.prose p,
+.prose li {
+  max-width: 76ch;
+  line-height: 1.9;
+}
+
+.prose p {
+  margin-bottom: 10px;
+}
+
+.prose ul,
+.prose ol {
+  margin: 0 0 10px;
+  padding: 12px 14px 12px 34px;
+  border: 3px dashed var(--border);
+  border-radius: 2px;
+  background: #fff;
+}
+
+.prose li {
+  margin-bottom: 6px;
+}
+
+.prose li:last-child {
+  margin-bottom: 0;
+}
+
+.prose strong {
+  font-weight: 700;
+}
+
+/* 定義リスト（コンポーネント構成） */
+.deflist {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.deflist__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 4px;
+  border: 3px solid var(--border);
+  border-radius: 2px;
+  background: #fff;
+  padding: 10px 12px;
+  box-shadow: 3px 3px 0 var(--border);
+}
+
+.deflist__row > strong {
+  font-size: 0.95rem;
+}
+
+.deflist__row > p {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.8;
+}
+
+/* テーブル（仕様） */
+.prose .table-wrap {
+  border: 4px solid var(--border);
+  border-radius: 3px;
+  overflow-x: auto;
+  background: var(--bg);
+  box-shadow: 4px 4px 0 var(--border);
+  margin-bottom: 12px;
+}
+
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.prose table th,
+.prose table td {
+  border: 2px solid var(--border);
+  padding: 8px 12px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.prose table thead th {
+  background: var(--muted);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.prose table tbody th {
+  font-weight: 700;
+  white-space: nowrap;
+  width: 11rem;
+  background: #fafafa;
+}
+
+.prose table tbody tr:nth-child(even) {
+  background: #fafafa;
+}
+
+/* カード（3カラム） */
+.cards--doc {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+/* フロー図 */
+.flow {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.flow__step {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  border: 3px solid var(--border);
+  border-radius: 2px;
+  background: #fff;
+  padding: 9px 12px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  box-shadow: 3px 3px 0 var(--border);
+}
+
+.flow__num {
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--border);
+  border-radius: 50%;
+  background: var(--accent);
+  font-size: 0.8rem;
+}
+
+.flow__step svg {
+  flex-shrink: 0;
+}
+
+/* 注記 */
+.doc-note {
+  border: 3px dashed var(--border);
+  border-left-width: 10px;
+  border-radius: 2px;
+  background: #fff;
+  padding: 10px 14px;
+  font-size: 0.88rem;
+  line-height: 1.85;
+  margin-bottom: 12px;
+}
+
+.doc-note--warn {
+  border-left-color: var(--warn);
+  background: #fffaf2;
+}
+
+.doc-note--ok {
+  border-left-color: var(--ok);
+  background: #f3fffa;
+}
+
+.doc-note__label {
+  display: inline-block;
+  margin-right: 6px;
+}
+
+/* プリミティブ表（縦持ちカード） */
+.prims {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.prim {
+  border: 3px solid var(--border);
+  border-radius: 2px;
+  background: #fff;
+  padding: 12px;
+  box-shadow: 3px 3px 0 var(--border);
+}
+
+.prim__name {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.95rem;
+  display: inline-block;
+  padding: 1px 8px;
+  border: 2px dashed var(--border);
+  margin-bottom: 6px;
+}
+
+.prim__body {
+  font-size: 0.85rem;
+  line-height: 1.8;
+  margin: 0;
+}
+
+.prim__code {
+  margin: 8px 0 0;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  line-height: 1.6;
+  padding: 8px;
+  border: 2px solid var(--border);
+  background: #fff;
+  white-space: pre;
+  overflow-x: auto;
+}
+
+/* ページ内ナビゲーション */
+.doc__nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.doc__nav a {
+  display: inline-block;
+  padding: 6px 12px;
+  border: 3px solid var(--border);
+  background: var(--bg);
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-decoration: none;
+  border-radius: 2px;
+}
+
+.doc__nav a:hover {
+  background: var(--accent);
+}

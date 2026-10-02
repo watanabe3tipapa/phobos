@@ -1,0 +1,17 @@
+{
+  "name": "phobos",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "laya 紹介 & 試用ページ (LP + Sandbox) — GitHub Pages 向け静的サイト",
+  "scripts": {
+    "build": "node tools/build.mjs",
+    "serve": "node tools/build.mjs --serve",
+    "vendor": "node tools/vendor-wterm.mjs",
+    "vendor:check": "node tools/vendor-wterm.mjs --check"
+  },
+  "dependencies": {
+    "@wterm/core": "0.5.4",
+    "@wterm/dom": "0.5.4"
+  }
+}

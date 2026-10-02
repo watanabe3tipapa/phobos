@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>laya UI/UX 実装ガイド — 確率の可視化</title>
+    <meta
+      name="description"
+      content="laya を誰でも直感的に使えるインターフェースにするための UI/UX 設計方針。状態入力・質問設計・結果可視化の 3 カラム構成、信頼度ゲーティング、アクセシビリティ要件。"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Roboto+Mono:wght@400;700&family=Noto+Sans+JP:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="assets/css/base.css" />
+    <link rel="stylesheet" href="assets/css/doc.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">本文へスキップ</a>
+
+    <header class="site-header">
+      <div class="shell site-header__inner">
+        <a class="brand" href="index.html">phobos</a>
+        <nav class="site-nav" aria-label="サイト内ナビゲーション">
+          <a href="index.html">Home</a>
+          <a href="demo.html">Sandbox</a>
+          <a href="laya_uiux_guide.html" aria-current="page">UI/UX ガイド</a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="main" class="shell doc">
+      <nav class="doc__nav" aria-label="ページ内ナビゲーション">
+        <a href="#problem">1. 課題</a>
+        <a href="#spec">2. 仕様</a>
+        <a href="#primitives">3. プリミティブ</a>
+        <a href="#layout">4. レイアウト</a>
+        <a href="#flow">5. 導線</a>
+        <a href="#impl">6. 実装要点</a>
+        <a href="demo.html">→ Sandbox</a>
+      </nav>
+
+      <header class="doc__head">
+        <h1 class="doc__title">laya UI/UX 実装ガイド</h1>
+        <div class="doc__meta">
+          <span class="tag tag--accent">設計方針</span>
+          <span class="tag">3 カラム構成</span>
+          <span class="tag">confidence gating</span>
+          <span class="tag">v0.1</span>
+        </div>
+      </header>
+
+      <div class="prose">
+        <!-- ============================================ 1. 課題 ======== -->
+        <section id="problem">
+          <h2>解決すべき 3 つの UX 課題</h2>
+          <p>
+            laya はテキスト生成ではなく、<strong>較正された確率と信頼度</strong>で回答する System
+            1 意思決定モデルです。この性質を理解したうえで、一般のユーザーが迷わず扱える
+            インターフェースにするには 3 つの課題があります。いずれも
+            <a href="demo.html">Sandbox</a>
+            で実装を確かめられます。
+          </p>
+
+          <div class="cards--doc">
+            <article class="card">
+              <svg class="card__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 3v12" /><path d="m7 10 5 5 5-5" /><path d="M5 21h14" />
+              </svg>
+              <h3 class="card__title">1. 状態入力の簡素化</h3>
+              <p class="card__body">
+                メール・チケット・JSON をそのまま貼り付けられる必要があります。構造化データと非構造化データの両方を同じ
+                入力口で受けるため、形式の切り替えはタブで、ファイルはドロップで扱います。
+              </p>
+            </article>
+
+            <article class="card">
+              <svg class="card__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="3" />
+                <path d="M12 2v3M12 19v3M2 12h3M19 12h3" />
+              </svg>
+              <h3 class="card__title">2. 質問設計のガイド</h3>
+              <p class="card__body">
+                <span class="k">choice</span> / <span class="k">score</span> /
+                <span class="k">noul</span> の型をユーザーが自行して正しく設計するのは難しい。テンプレートギャラリーから
+                選ばせ、個別に編集するのは最後の手段にします。
+              </p>
+            </article>
+
+            <article class="card">
+              <svg class="card__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M6 20V10M12 20V4M18 20v-6" />
+              </svg>
+              <h3 class="card__title">3. 結果の可視化と信頼の伝達</h3>
+              <p class="card__body">
+                「答え」だけでなく確率分布と信頼度スコアを見せ、「なぜそう判断したか」を追跡できる
+                ようにします。信頼度は色だけでなく
+                <strong>数値とテキスト</strong>で必ず伝えます。
+              </p>
+            </article>
+          </div>
+        </section>
+
+        <!-- ============================================ 2. 仕様 ======== -->
+        <section id="spec">
+          <h2>前提となるモデル仕様</h2>
+          <div class="table-wrap" tabindex="0">
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">項目</th>
+                  <th scope="col">仕様</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <th scope="row">バックボーン</th>
+                  <td>ModernBERT-large（395M、双方向、完全ファインチューニング）＋ decision head</td>
+                </tr>
+                <tr>
+                  <th scope="row">総パラメータ</th>
+                  <td>421M</td>
+                </tr>
+                <tr>
+                  <th scope="row">入力トークン</th>
+                  <td>1 質問あたり 512（英語）／1024（多言語・typed-decisions）</td>
+                </tr>
+                <tr>
+                  <th scope="row">推論速度</th>
+                  <td>1 問 32.8 ms、10 問バッチ 72.3 ms（T4 GPU）</td>
+                </tr>
+                <tr>
+                  <th scope="row">質問型</th>
+                  <td>
+                    <span class="tag tag--dashed">choice</span>
+                    <span class="tag tag--dashed">score</span>
+                    <span class="tag tag--dashed">noul</span>
+                  </td>
+                </tr>
+                <tr>
+                  <th scope="row">較正</th>
+                  <td>温度スケーリング後 ECE 0.081</td>
+                </tr>
+                <tr>
+                  <th scope="row">ライセンス</th>
+                  <td>Apache 2.0（完全オープンソース）</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="doc-note doc-note--warn">
+            <span class="doc-note__label">注意</span>
+            ゼロショットの base checkpoint は typed-decisions で 0.362（ランダム 0.318）。Jev
+            に勝つのは同ベンチの学習スプリットで fine-tune した
+            <code>laya-typed-decisions</code> の 0.766 です。UI
+            で過度な期待を持たせないよう、この旨をどこかで明示してください。
+          </div>
+        </section>
+
+        <!-- ==================================== 3. プリミティブ ======== -->
+        <section id="primitives">
+          <h2>3 つのプリミティブと、その見せ方</h2>
+          <div class="prims">
+            <div class="prim">
+              <span class="prim__name">choice</span>
+              <p class="prim__body">
+                選択肢から 1 つ。全選択肢の確率分布を横棒で示します。UI
+                では分布全体を常時表示し、top の 1 本だけアクセント色で区別します。
+              </p>
+              <pre class="prim__code" tabindex="0">"type": "choice",
+"criteria": {
+  "billing": "refunds",
+  "technical": "bugs"
+}</pre>
+            </div>
+
+            <div class="prim">
+              <span class="prim__name">score</span>
+              <p class="prim__body">
+                順序付き段階。段階を等間隔のスケールに並べ、マーカー位置で「どの段階とみなされたか」を示します。判断の根拠が伝わりにくい
+                primitive なので、段階ごとの確率分布は必ず併記します。
+              </p>
+              <pre class="prim__code" tabindex="0">"type": "score",
+"criteria": [
+  "low", "medium", "high"
+]</pre>
+            </div>
+
+            <div class="prim">
+              <span class="prim__name">noul</span>
+              <p class="prim__body">
+                P(true) を 0.0–1.0 のゲージで提示。英語 checkpoint では
+                <code>false:</code>/<code>true:</code> ラベルに引かれる既知の issue があるため、本番では中立キー +
+                2 選択肢の <code>choice</code> に置換するのが安全です。
+              </p>
+              <pre class="prim__code" tabindex="0">"type": "noul",
+"instructions":
+  "Will they leave?"</pre>
+            </div>
+          </div>
+        </section>
+
+        <!-- ======================================== 4. レイアウト ======== -->
+        <section id="layout">
+          <h2>推奨レイアウト: 3 カラム</h2>
+          <p>
+            入力・質問設計・結果の流れを 1 画面で追える構成にします。1180px
+            以下では 2 カラム、760px 以下では 1 カラムに畳みます。順序は
+            <strong>入力 → 設計 → 結果</strong> に固定してください。
+          </p>
+
+          <div class="deflist">
+            <div class="deflist__row">
+              <strong>A. 入力パネル（左）</strong>
+              <p>
+                State Input: タブで Raw / Email / JSON / Ticket
+                を切替。ドラッグ＆ドロップでファイル読み込み。512
+                トークン制限への近さはバーの色で示し（文字と数値も併記）。
+              </p>
+            </div>
+            <div class="deflist__row">
+              <strong>B. 質問設計パネル（中央）</strong>
+              <p>
+                テンプレートギャラリー（メール振り分け・フィッシング検知・サポート優先度・AI
+                ガードレール・請求処理・感情・多言語）と、カスタム質問エディタ。型を選ぶと
+                criteria の入力欄が動的に切り替わります。リアルタイム検証で未入力を指摘。
+              </p>
+            </div>
+            <div class="deflist__row">
+              <strong>C. 結果パネル（右）</strong>
+              <p>
+                信頼度メーター（円形ゲージ）、確率分布バー（choice）、スコアスケール（score）、P(true)
+                ゲージ（noul）、信頼度ゲート警告、JSON / CSV エクスポート。生レスポンスは折りたためる領域に。
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================================ 5. 導線 ======== -->
+        <section id="flow">
+          <h2>インタラクションフロー</h2>
+          <div class="flow">
+            <div class="flow__step">
+              <span class="flow__num">1</span>
+              <span>状態テキストを貼り付け（またはファイルをドロップ）</span>
+            </div>
+            <div class="flow__step">
+              <span class="flow__num">2</span>
+              <span>テンプレートを選ぶ</span>
+            </div>
+            <div class="flow__step">
+              <span class="flow__num">3</span>
+              <span>Analyze を実行</span>
+            </div>
+            <div class="flow__step">
+              <span class="flow__num">4</span>
+              <span>結果を確認し、エクスポート</span>
+            </div>
+          </div>
+
+          <div class="doc-note doc-note--ok">
+            <span class="doc-note__label">ゲーティング</span>
+            信頼度が 0.85 未満の場合は、自動判定を保留し人手確認を促す警告を明示します。これが laya
+            の「安全な自動化ゲーティング」の強みです。閾値は UI
+            で変更できるようにし、判定理由も併記してください。
+          </div>
+        </section>
+
+        <!-- =========================================== 6. 実装要点 ======== -->
+        <section id="impl">
+          <h2>実装のポイント</h2>
+          <ul>
+            <li>
+              <strong>バッチ処理を前提にする:</strong>
+              複数質問は 1
+              フォワードパスで処理されるため、UI 上も「質問セット」としてまとめて管理します。1
+              問ずつ送信すると待ち時間だけが増えます。
+            </li>
+            <li>
+              <strong>エラーハンドリング:</strong>
+              トークン超過の事前警告、不正な質問型（choice に配列、score にオブジェクト）は送信前に弾きます。
+              サーバーは 422 で理由を返します。
+            </li>
+            <li>
+              <strong>アクセシビリティ:</strong>
+              信頼度は色だけに依存させず、数値とテキストで伝えます。ゲージには
+              <code>aria-label</code>、分布バーには表形式の代替を用意します。
+            </li>
+            <li>
+              <strong>推論元の明示:</strong>
+              デモ用の決定論モックと実推論を切り替える場合、選択器の横に常に現在のエンジンと
+              「モックである」旨を出します。
+            </li>
+            <li>
+              <strong>レスポンシブ:</strong>
+              3 カラム → 2 カラム → 1 カラムの畳み込みと、コンソールパネルの開閉を breakpoint ごとに定義します。
+            </li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>まとめ</h2>
+          <p>
+            laya の UI/UX は「推論の透明性」を最大の価値として設計します。黒箱の生成 AI
+            と異なり、確率と信頼度が較正された出力を人間が理解し判断に組み込めるようにすることが、本モデルを容易に使用するための鍵です。3
+            カラムの直感的なレイアウトと、信頼度を可視化するゲージ・分布バー・スケールを組み合わせることで、誰でも強みを最大限に引き出せるインターフェースが実現できます。
+          </p>
+          <div class="doc__nav" style="margin-top: 14px">
+            <a href="demo.html">Sandbox で試す →</a>
+            <a href="index.html">Home に戻る</a>
+          </div>
+        </section>
+      </div>
+
+      <p class="legal-note" style="font-size: 0.78rem; color: #333; line-height: 1.8">
+        本ガイドは <a href="https://huggingface.co/convaiinnovations/laya" target="_blank" rel="noopener">Laya モデルカード</a> および <a href="https://github.com/NandhaKishorM/laya/blob/main/BENCHMARKS.md" target="_blank" rel="noopener">BENCHMARKS.md</a> に基づく設計メモです。
+        文中の一部の数値は第三者の公開値を含みます。
+      </p>
+    </main>
+
+    <footer class="site-footer">
+      <div class="shell site-footer__inner">
+        <p>phobos — laya 紹介 &amp; 試用ページ</p>
+        <nav class="site-footer__links" aria-label="フッターナビゲーション">
+          <a href="index.html">Home</a>
+          <a href="demo.html">Sandbox</a>
+          <a href="laya_uiux_guide.html">UI/UX ガイド</a>
+        </nav>
+      </div>
+    </footer>
+  </body>
+</html>
