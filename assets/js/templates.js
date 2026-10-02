@@ -14,7 +14,7 @@ export const TEMPLATES = [
     name: "メール振り分け",
     description: "サポート受信箱の自動振り分け。部門・緊急度・解約リスクをまとめて判定。",
     kind: "email",
-    stateSample: `From: yuki.tanaka@example.com
+    stateSample: `From: watanabe3tipapa@example.com
 Subject: 3月分の請求が二重でございます
 
 こんにちは。3月分の請求書が二重で請求されています。昨日の午後にも同じ金額の明細が
