@@ -25,6 +25,7 @@ const INCLUDE_FILES = [
   "demo.html",
   "laya_uiux_guide.html",
   "README.md",
+  "README_en.md",
   "LICENSE",
 ];
 

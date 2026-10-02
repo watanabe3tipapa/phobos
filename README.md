@@ -9,6 +9,8 @@
 [![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-live-blue.svg)](https://watanabe3tipapa.github.io/phobos/)
 [![GitHub](https://img.shields.io/github/issues/watanabe3tipapa/phobos.svg)](https://github.com/watanabe3tipapa/phobos/issues)
 
+[日本語](README.md) | [English](README_en.md)
+
 **クイックリンク:** [公開サイト](https://watanabe3tipapa.github.io/phobos/) · [Sandbox](https://watanabe3tipapa.github.io/phobos/demo.html) · [UI/UX 設計ガイド](https://watanabe3tipapa.github.io/phobos/laya_uiux_guide.html) · [コンソールリファレンス](#コンソールリファレンス) · [honest limits](#正直な限界)
 
 ## コンセプト
