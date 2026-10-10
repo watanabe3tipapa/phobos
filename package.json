@@ -4,6 +4,16 @@
   "private": true,
   "type": "module",
   "description": "laya 紹介 & 試用ページ (LP + Sandbox) — GitHub Pages 向け静的サイト",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/watanabe3tipapa/phobos.git"
+  },
+  "author": "watanabe3tipapa",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/watanabe3tipapa/phobos/issues"
+  },
+  "homepage": "https://watanabe3tipapa.github.io/phobos/",
   "scripts": {
     "build": "node tools/build.mjs",
     "serve": "node tools/build.mjs --serve",
