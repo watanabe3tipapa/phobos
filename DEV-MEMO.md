@@ -229,7 +229,7 @@ Magnitude 結合テストのフェイクサーバには、**CORS ヘッダと正
 
 ### 8.1 用語は Sandbox に統一
 
-公開コミットに "Sandbox" は存在しない。初回 commit `5e5dfbf` の時点で "Sandbox" 表記であり、README・HTML・JS のいずれにも "Sandbox" は残っていない（`git grep -i Sandbox` で 0 件）。
+公開コミットに "Playground" は存在しない。初回 commit `5e5dfbf` の時点で "Sandbox" 表記であり、README・HTML・JS のいずれにも "playground" は残っていない（`git grep -i playground` で 0 件）。
 
 ファイル名 `demo.html` と `assets/js/play.js` はそのまま残した。公開 URL とファイル構成を壊さないためで、表示文言だけが Sandbox 表記に揃っている。
 
